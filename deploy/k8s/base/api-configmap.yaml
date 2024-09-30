@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: studio-api-grpc-prompt2vector-cm
+data:
+  ## General
+  TZ: Asia/Taipei
+  NODE_ENV: development
+  PORT: "8081"
+  MAX_WORKER: "10"
+  P2V_MODEL_PATH: ""

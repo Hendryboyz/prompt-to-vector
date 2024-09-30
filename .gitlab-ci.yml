@@ -1,0 +1,96 @@
+variables:
+  DOCKER_DRIVER: overlay2
+  GITLAB_APP_REGISTRY: $CI_REGISTRY_IMAGE/api
+  DOCKERFILE_DIR: ./
+
+include:
+  - project: "yating-infra/shared-cicd-scripts"
+    ref: main
+    file: "gitlab/build.yaml"
+  - project: "yating-infra/shared-cicd-scripts"
+    ref: main
+    file: "gitlab/deploy-env.yaml"
+  - project: "yating-infra/shared-cicd-scripts"
+    ref: main
+    file: "gitlab/push-image.yaml"
+  - project: "yating-infra/shared-cicd-scripts"
+    ref: main
+    file: "gitlab/deploy.yaml"
+
+stages:
+  - build
+  - deploy
+
+# Build
+# =====================
+
+build:test:
+  stage: build
+  extends:
+    - .build
+  only:
+    changes:
+      - api/**/*
+  except:
+    refs:
+      - tags
+      - lab6
+  variables:
+    TEST_ONLY: "true"
+
+build:release:
+  stage: build
+  extends:
+    - .build
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-(0|[1-9]\d*))?$/ && $CI_COMMIT_MESSAGE =~ /^Release/
+      when: always
+
+# Deploy
+# =====================
+
+deploy:lab5:
+  extends:
+    - .lab5-studio
+  stage: deploy
+  environment:
+    name: lab5
+    deployment_tier: development
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - .gitlab-ci.yml
+        - api/**/*
+        - deploy/k8s/overlays/lab5/**/*
+        - deploy/k8s/base/**/*
+      allow_failure: true
+      when: manual
+  variables:
+    K8S_CONFIG: deploy/k8s/overlays/lab5
+    APP_IMAGE: $GITLAB_APP_REGISTRY
+  script:
+    - !reference [".deploy:script:kustomization", script]
+    - !reference [".deploy:script:apply-k8s", script]
+
+deploy:lab6:
+  extends:
+    - .lab6-studio
+  stage: deploy
+  environment:
+    name: lab6
+    deployment_tier: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "lab6"
+      changes:
+        - .gitlab-ci.yml
+        - api/**/*
+        - deploy/k8s/overlays/lab6/**/*
+        - deploy/k8s/base/**/*
+      allow_failure: true
+      when: manual
+  variables:
+    K8S_CONFIG: deploy/k8s/overlays/lab6
+    APP_IMAGE: $GITLAB_APP_REGISTRY
+  script:
+    - !reference [".deploy:script:kustomization", script]
+    - !reference [".deploy:script:apply-k8s", script]

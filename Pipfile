@@ -1,0 +1,26 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[[source]]
+url = "https://download.pytorch.org/whl/cpu"
+verify_ssl = true
+name = "downloadpytorch"
+
+[packages]
+pendulum = "*"
+transformers = "*"
+torch = {version = "*", index = "downloadpytorch"}
+sentence-transformers = "*"
+numpy = "<2"
+pydantic-settings = "*"
+grpcio = "*"
+grpcio-health-checking = "*"
+
+[dev-packages]
+grpcio-tools = "*"
+bumpversion = "*"
+
+[requires]
+python_version = "3.10"

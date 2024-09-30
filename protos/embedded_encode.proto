@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+
+service EmbeddedEncode {
+  rpc EncodeSentence(EncodingRequest) returns (EncodedVectors) {}
+
+  rpc Hello(HelloRequest) returns (HelloReply) {}
+}
+
+message EncodingRequest {
+  repeated string sentences = 1;
+}
+
+message Vector {
+  repeated double vector = 1 [packed=true];
+}
+
+message EncodedVectors {
+  repeated Vector vectors = 1;
+}
+
+message HelloRequest {
+  string message = 1;
+}
+
+message HelloReply {
+  string message = 1;
+}
